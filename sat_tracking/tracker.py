@@ -8,12 +8,11 @@ def track_satellite(tle_line1, tle_line2, timestamp=None):
     if timestamp is None:
         timestamp = datetime.now(timezone.utc)
 
-    # Converstion to Julian date
+    # Conversion to Julian date
     jd, fr = jday(timestamp.year, timestamp.month, timestamp.day,
                   timestamp.hour, timestamp.minute, timestamp.second + timestamp.microsecond*1e-6)
 
     error_code, position, velocity = sat.sgp4(jd, fr)
-
     if error_code != 0:
         raise RuntimeError(f"SGP4 error code: {error_code}")
 
@@ -23,7 +22,12 @@ def track_satellite(tle_line1, tle_line2, timestamp=None):
     r = math.sqrt(x**2 + y**2 + z**2)
     lat = math.degrees(math.asin(z / r))
     lon = math.degrees(math.atan2(y, x))
+    if lon > 180:
+        lon -= 360
+    elif lon < -180:
+        lon += 360
     alt = r - 6371  # km above Earth's average radius
+
     return {
         "latitude": lat,
         "longitude": lon,
